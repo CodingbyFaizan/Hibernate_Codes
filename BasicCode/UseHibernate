@@ -1,0 +1,131 @@
+pom.xml
+
+  <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>com.hibernate</groupId>
+  <artifactId>HibernatePractice</artifactId>
+  <version>0.0.1-SNAPSHOT</version>
+  <packaging>jar</packaging>
+
+  <name>HibernatePractice</name>
+  <url>http://maven.apache.org</url>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>3.8.1</version>
+      <scope>test</scope>
+    </dependency>
+    
+     <dependency>
+        <groupId>org.hibernate</groupId>
+        <artifactId>hibernate-core</artifactId>
+        <version>6.4.0.Final</version>
+    </dependency>
+
+    <dependency>
+        <groupId>mysql</groupId>
+        <artifactId>mysql-connector-java</artifactId>
+        <version>8.0.26</version>
+    </dependency>
+
+  </dependencies>
+</project>
+
+
+
+hibernate.cfg.xml
+
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE hibernate-configuration PUBLIC
+		"-//Hibernate/Hibernate Configuration DTD 3.0//EN"
+		"http://www.hibernate.org/dtd/hibernate-configuration-3.0.dtd">
+<hibernate-configuration>
+    <session-factory>
+        <property name="hibernate.connection.driver_class">com.mysql.jdbc.Driver</property>
+        <property name="hibernate.connection.password">Faizan@786</property>
+        <property name="hibernate.connection.url">jdbc:mysql://localhost:3306/hibernatepractice</property>
+        <property name="hibernate.connection.username">root</property>
+        <property name="hibernate.dialect">org.hibernate.dialect.MySQL8Dialect</property>
+        <property name="hbm2ddl.auto">update</property>
+        
+        <property name="show_sql">true</property>
+    </session-factory>
+</hibernate-configuration>
+
+
+
+Student.java
+
+package com.hibernate.HibernatePractice;
+
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+
+@Entity
+public class Student {
+
+	@Id
+	private int rollno;
+	private String name;
+	
+	public int getRollNo() {
+		return rollno;
+	}
+	
+	public void setRollNo(int rollno) {
+		this.rollno = rollno;
+	}
+	
+	public String getName() {
+		return name;
+	}
+	
+	public void setName(String name) {
+		this.name = name;
+	}
+	
+	public String toString() {
+		return "Student : [ RollNo : " + rollno + " Name : " + name + " ]";
+	}
+}
+
+
+
+App.java
+
+package com.hibernate.HibernatePractice;
+
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
+import org.hibernate.cfg.Configuration;
+import org.hibernate.service.ServiceRegistry;
+
+public class App 
+{
+    public static void main( String[] args )
+    {
+    	Student stud1 = new Student();
+    	stud1.setRollNo(1);
+    	stud1.setName("Faizan");
+
+    	Configuration con = new Configuration().configure().addAnnotatedClass(Student.class);
+    	
+    	ServiceRegistry reg = new StandardServiceRegistryBuilder().applySettings(con.getProperties()).build();
+    	
+    	SessionFactory sf = con.buildSessionFactory(reg);
+    	
+    	Session session = sf.openSession();
+    	session.persist(stud1);
+    	
+    }
+}
+
