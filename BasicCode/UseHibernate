@@ -124,7 +124,14 @@ public class App
     	SessionFactory sf = con.buildSessionFactory(reg);
     	
     	Session session = sf.openSession();
+
+      session.beginTransaction();
+
     	session.persist(stud1);
+
+      session.getTransaction().commit();
+
+      session.close();
     	
     }
 }
