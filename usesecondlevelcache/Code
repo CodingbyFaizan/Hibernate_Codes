@@ -1,0 +1,202 @@
+pom.xml
+
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>com.hibernate</groupId>
+	<artifactId>HibernatePractice</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<packaging>jar</packaging>
+
+	<name>HibernatePractice</name>
+	<url>http://maven.apache.org</url>
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+	</properties>
+
+	<dependencies>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>3.8.1</version>
+			<scope>test</scope>
+		</dependency>
+
+		<!-- https://mvnrepository.com/artifact/org.hibernate/hibernate-core -->
+		<dependency>
+			<groupId>org.hibernate</groupId>
+			<artifactId>hibernate-core</artifactId>
+			<version>6.0.0.Alpha7</version>
+			<type>pom</type>
+		</dependency>
+
+
+		<dependency>
+			<groupId>mysql</groupId>
+			<artifactId>mysql-connector-java</artifactId>
+			<version>8.0.26</version>
+		</dependency>
+
+
+		<!-- https://mvnrepository.com/artifact/net.sf.ehcache/ehcache -->
+		<dependency>
+			<groupId>net.sf.ehcache</groupId>
+			<artifactId>ehcache</artifactId>
+			<version>2.10.9.2</version>
+		</dependency>
+
+
+		<!--
+		https://mvnrepository.com/artifact/org.hibernate.orm/hibernate-ehcache -->
+		<dependency>
+			<groupId>org.hibernate.orm</groupId>
+			<artifactId>hibernate-ehcache</artifactId>
+			<version>6.0.0.Alpha7</version>
+		</dependency>
+	</dependencies>
+</project>
+
+
+
+hibernate.cfg.xml 
+
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE hibernate-configuration PUBLIC
+		"-//Hibernate/Hibernate Configuration DTD 3.0//EN"
+		"http://www.hibernate.org/dtd/hibernate-configuration-3.0.dtd">
+<hibernate-configuration>
+    <session-factory>
+        <property name="hibernate.connection.driver_class">com.mysql.jdbc.Driver</property>
+        <property name="hibernate.connection.password">Faizan@786</property>
+        <property name="hibernate.connection.url">jdbc:mysql://localhost:3306/hibernatepractice</property>
+        <property name="hibernate.connection.username">root</property>
+        <property name="hibernate.dialect">org.hibernate.dialect.MySQL8Dialect</property>
+        <property name="hbm2ddl.auto">update</property>
+        <property name="show_sql">true</property>
+        
+        
+        <property name="hibernate.cache.use_second_level_cache">true</property>
+        <property name="hibernate.cache.region.factory_class">org.hibernate.cache.ehcache.internal.EhcacheRegionFactory</property>
+        <property name="hibernate.cache.use_query_cache">true</property>
+        
+    </session-factory>
+</hibernate-configuration>
+
+
+
+
+Student.java
+
+package com.hibernate.HibernatePractice;
+
+import javax.persistence.Cacheable;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+
+import org.hibernate.annotations.Cache;
+
+import org.hibernate.annotations.CacheConcurrencyStrategy;
+
+//import jakarta.persistence.Cacheable;
+//import jakarta.persistence.Entity;
+//import jakarta.persistence.Id;
+
+@Entity
+@Cacheable
+@Cache(usage = CacheConcurrencyStrategy.READ_ONLY)
+public class Student {
+
+	@Id
+	private int rollno;
+	private String name;
+	
+	public int getRollNo() {
+		return rollno;
+	}
+	
+	public void setRollNo(int rollno) {
+		this.rollno = rollno;
+	}
+	
+	public String getName() {
+		return name;
+	}
+	
+	public void setName(String name) {
+		this.name = name;
+	}
+	
+	public String toString() {
+		return "Student : [ RollNo : " + rollno + " Name : " + name + " ]";
+	}
+}
+
+
+
+App.java
+
+package com.hibernate.HibernatePractice;
+
+import java.util.List;
+
+
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
+import org.hibernate.cfg.Configuration;
+import org.hibernate.query.Query;
+import org.hibernate.service.ServiceRegistry;
+
+//import jakarta.persistence.TypedQuery;
+
+public class App 
+{
+    public static void main( String[] args )
+    {
+
+    	Configuration con = new Configuration().configure().addAnnotatedClass(Student.class);
+    	
+    	ServiceRegistry reg = new StandardServiceRegistryBuilder().applySettings(con.getProperties()).build();
+    	
+    	SessionFactory sf = con.buildSessionFactory(reg);
+    	
+    	Session session = sf.openSession();
+    	
+    	session.beginTransaction();
+    	
+    	
+//    	Fetching multiple rows means multiple student object we need to create an List<Student>
+    	
+    	Query<Student> query1 = session.createQuery("from Student", Student.class);
+    	List<Student> students1 = query1.getResultList();
+    	query1.setCacheable(true);
+    	
+    	for(Student stud : students1) {
+    	    System.out.println(stud);
+    	}
+    	
+    
+    	
+    	session.getTransaction().commit();
+    	session.close();
+    	
+    	Session session2 = sf.openSession();
+    	session2.beginTransaction();
+    	
+    	Query<Student> query2 = session2.createQuery("from Student", Student.class);
+    	List<Student> students2 = query2.getResultList();
+    	query2.setCacheable(true);
+    	for(Student stud : students2) {
+    	    System.out.println(stud);
+    	}
+//    	
+    	session2.getTransaction().commit();
+    	session2.close();
+    	
+    }
+}
+
+
